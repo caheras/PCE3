@@ -522,34 +522,32 @@ def solve_recurrence(coeffs, initial_conditions, chat_id):
     n = sp.Symbol('n')
     recurrence_func = sp.Function('a')
 
-    # # Prompt user for coefficients and initial conditions
-    # coeffs = input("Enter the coefficients of the recurrence relation separated by spaces: ").split()
-    # initial_conditions = input("Enter the initial conditions separated by spaces: ").split()
+    try:
+        # Convert input to integers
+        coeffs = list(map(int, coeffs))
+        initial_conditions = list(map(int, initial_conditions))
 
-    # # Validate the number of coefficients and initial conditions
-    # while len(coeffs) != len(initial_conditions):
-    #     print("Error: The number of coefficients must match the number of initial conditions.")
-    #     initial_conditions = input("Enter the initial conditions separated by spaces: ").split()
+        # Create the recurrence relation equation
+        eq = sp.Eq(recurrence_func(n), sum(coeffs[i] * recurrence_func(n-i-1) for i in range(len(coeffs))))
 
-    # Convert input to integers1
-    coeffs = list(map(int, coeffs))
-    initial_conditions = list(map(int, initial_conditions))
+        # Solve the recurrence relation
+        recurrence_sol = sp.rsolve(eq, recurrence_func(n), initial_conditions)
 
-    # Create the recurrence relation equation
-    eq = sp.Eq(recurrence_func(n), sum(coeffs[i] * recurrence_func(n-i-1) for i in range(len(coeffs))))
+        # Generate the non-recurrent expression
+        nonrecurrent_expr = recurrence_sol.subs(recurrence_func(n), 'f(n)').simplify()
 
-    # Solve the recurrence relation
-    recurrence_sol = sp.rsolve(eq, recurrence_func(n), initial_conditions)
+        # Simplify the non-recurrent expression
+        simplified_expr = nonrecurrent_expr.expand().simplify()
 
-    # Generate the non-recurrent expression
-    nonrecurrent_expr = recurrence_sol.subs(recurrence_func(n), 'f(n)').simplify()
+        # Send the result message
+        bot.send_message(chat_id, "La versión no recurrente de la función ingresada es: {}".format(simplified_expr))
 
-    simplified_expr = nonrecurrent_expr.expand().simplify()
+        return recurrence_sol, nonrecurrent_expr
 
-    # Print the results
-    bot.send_message(chat_id, "La versión no recurrente de la función ingresada es: {}".format(simplified_expr))
-    return recurrence_sol, nonrecurrent_expr
-
+    except ValueError:
+        # Handle the ValueError when converting input to integers
+        bot.send_message(chat_id, "Error: Ha ocurrido un problema en los cálculos.")
+        return None, None
 
 
 
